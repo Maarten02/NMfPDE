@@ -81,3 +81,16 @@ plt.loglog(n_range, s1_rmse, 'b', label="$RMSE u_1$")
 plt.loglog(n_range, s2_rmse, 'r', label="$RMSE u_2$")
 plt.legend()
 plt.show()
+
+#--------------- Code for plotting source functions and exact solutions -----
+
+# plt.figure()
+# plt.plot(xgrid, f1, marker='o', c='b', label="$f_1$")
+# plt.plot(xgrid, f2, marker='o', c='r', label="$f_2$")
+# plt.plot(xgrid, u1, 'b--', label="$u1$")
+# plt.plot(xgrid, u2, 'r--', label="$u2$")
+# plt.legend()
+# plt.title("$f_1$ and $f_2$")
+# plt.xlabel(r"$x$")
+# plt.ylabel(r"$y$")
+# plt.show()
