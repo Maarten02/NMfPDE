@@ -64,12 +64,17 @@ ffill[rows,cols] = f[rows,cols] # filling part of the image ffill with the value
 # plt.show()
 #-----------------------------------------------------------------------------
 # lexicographic domain function
-domainLX = np.reshape(x,-1) # reshape 2D domain array into 1D domainLX array
-domainLY = np.reshape(y,-1) # reshape 2D domain array into 1D domainLX array
+domainLX = np.reshape(x,-1) # reshape 2D(x) domain array into 1D domainLX array
+domainLY = np.reshape(y,-1) # reshape 2D(y) domain array into 1D domainLX array
 # find lexicographic indices of inner points
 rowsLX, colsLX, valsLX = sp.find(domainfunc(domainLX, domainLY) < 0)
 #lexicographic source vector on rectangular domain
 fLX = np.reshape(f, -1) # reshape 2D f array into 1D fLX array
 # lexicographic source vector on deformed domain
 fLXd = fLX[colsLX]
+
+# 2D FD Laplacian on rectangular domain
+A = FDLaplacian2D(Nx,Ny)
+# 2D FD Laplacian on deformed domain
+Ad = A.tocsr()[colsLX,:].tocsc()[:,colsLX]
 
