@@ -103,9 +103,10 @@ u = la.spsolve(Ad, fLXd)
 # plt.show()
 
 eigenvals, eigenvecs = sp.linalg.eigsh(Ad, k=20, which='SM')
-
+print(eigenvals)
 for i in range(np.size(eigenvecs, axis=1)):
     x = eigenvecs[:,i]
     mag = x.dot(u)
-    print('eigenvector', i+1, 'has dotproduct:', mag)
+    print('eigenvector', i+1, 'has dotproduct:', mag ,'and eigenvalue: ', eigenvals[i])
+
 #print(len(eigenvals), eigenvals, eigenvecs)
