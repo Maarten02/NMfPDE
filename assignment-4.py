@@ -5,8 +5,8 @@ import scipy.sparse.linalg as la
 
 Lx = 10  # length in x direction
 Ly = 5  # length in y direction
-Nx = 3  # number of intervals in x-direction
-Ny = 3  # number of intervals in y-direction
+Nx = 4  # number of intervals in x-direction
+Ny = 4  # number of intervals in y-direction
 dx = Lx/Nx  # grid step in x-direction
 dy = Ly/Ny  # grid step in y-direction
 
@@ -44,70 +44,77 @@ def createF(Xvalues, Yvalues,funcName):
 def notBoundary(i,j):
     nBx = True
     nBy = True
-    if i = 0 or i = Nx-1:
+    if i == -1 or i == Nx-1:
         nBx = False
-    if j = 0 or j = Ny-1:
+    if j == -1 or j == Ny-1:
         nBy = False
     return nBx, nBy
 
-def entry(cnt, x, y):
+def entry(coeffun,cnt, x, y):
     if cnt == 0:
         # add entry for node (i,j-1)
-        entryVal = -coeffK(x,y - dy * 0.5) / dy ** 2
+        entryVal = -coeffun(x,y - dy * 0.5) / dy ** 2
     elif cnt == 1:
         # add entry for node (i-1,j)
-        entryVal = -coeffK(x - dx * 0.5, y) / dx ** 2
+        entryVal = -coeffun(x - dx * 0.5, y) / dx ** 2
     elif cnt == 2:
         # add entry for node (i,j)
-        entryVal = (coeffK(x,y - dy * 0.5) +  coeffK(x, y + dy * 0.5)) / dy ** 2 + (coeffK(x - dx * 0.5, y) + coeffK(x + dx * 0.5, y)) / dx ** 2
+        entryVal = (coeffun(x,y - dy * 0.5) + coeffun(x, y + dy * 0.5)) / dy ** 2 + (coeffun(x - dx * 0.5, y) + coeffun(x + dx * 0.5, y)) / dx ** 2
     elif cnt == 3:
         # add entry for node (i+1,j)
-        entryVal = -coeffK(x + dx * 0.5, y) / dx ** 2
+        entryVal = -coeffun(x + dx * 0.5, y) / dx ** 2
     elif cnt == 4:
         # add entry for node (i,j+1)
-        entryVal = -coeffK(x, y + dy * 0.5) / dy ** 2
+        entryVal = -coeffun(x, y + dy * 0.5) / dy ** 2
 
     return entryVal
 
 def create2DLFVM(x,y,coeffFun):
     diags = [[],[],[],[],[]]
-    for i in range(199):
-        for j in range(99):
+    for j in range(0,Nx-1):
+        for i in range(0,Ny-1):
+
             x_coor = x[i,j]
-            y_coor = y][i,j]
+            y_coor = y[i,j]
             diag_points = [[i,j-1],[i-1,j],[i,j],[i+1,j],[i,j+1]]
 
             for cnt in range(len(diag_points)):
-                nBx, nBy = notBoundary(diag_points[cnt][0],diag_points[cnt][1])
-                if nBx and nBy:
-                    diags[cnt].append(entry(cnt, x_coor, y_coor))
-                elif not nBx:
-                    diags[cnt].append(0)
+                    nBx, nBy = notBoundary(diag_points[cnt][0],diag_points[cnt][1])
+                    print(diag_points[cnt][0],diag_points[cnt][1],nBx,nBy)
+                    if nBx and nBy:
+                        diags[cnt].append(entry(coeffK, cnt, x_coor, y_coor))
+                    else:
+                        diags[cnt].append(0)
+    print([diags[0][Ny-1:],diags[1][1:],diags[2],diags[3][:-1],diags[4][:-Ny-1]])
+    A = sp.diags([diags[0][Nx-1:],diags[1][1:],diags[2],diags[3][:-1],diags[4][:-Nx+1]], [-Nx+1, -1, 0 , 1, Nx-1], format='csc')
 
-    A = sp.diags(diags, [-Ny, -1, 0 , 1, Ny], format='csc')
     return A
 
 
 
 # create grid, source fcn values, coeff fcn values
-y, x = np.mgrid[dx:Ly:dx, dy:Lx:dy]
-fvec = createF(x,y,sourceF)
-kvec = createF(x,y,coeffK)
+x,y = np.mgrid[dx:Lx:dx, dy:Ly:dy]
+
+# fvec = createF(x,y,sourceF)
+# kvec = createF(x,y,coeffK)
 
 # reshape fvec and kvec for plotting
-size = (Ny-1, Nx-1)
-fvec_reshaped = np.reshape(fvec, size)
-kvec_reshaped = np.reshape(kvec,size)
+# size = (Ny-1, Nx-1)
+# fvec_reshaped = np.reshape(fvec, size)
+# kvec_reshaped = np.reshape(kvec,size)
 
 #--------------------- Plot source fcn and coefficient fcn ------------------------------
-plt.figure(1)
-plt.subplot(2,1,1)
-plt.imshow(fvec_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
-plt.colorbar(orientation='vertical')
-plt.subplot(2,1,2)
-plt.imshow(kvec_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
-plt.colorbar(orientation='vertical')
-plt.show()
+# plt.figure(1)
+# plt.subplot(2,1,1)
+# plt.imshow(fvec_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
+# plt.colorbar(orientation='vertical')
+# plt.subplot(2,1,2)
+# plt.imshow(kvec_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
+# plt.colorbar(orientation='vertical')
+# plt.show()
 
 #---------------------------------------------------------------------------------------
 
+A = create2DLFVM(x, y, coeffK)
+plt.spy(A, marker='o', markersize=10, color='g')
+plt.show()
