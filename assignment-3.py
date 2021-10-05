@@ -46,9 +46,9 @@ domain = domainfunc(x,y)
 
 rows, cols, vals = sp.find(domain < 0)
 
-minc = np.min(f) # background color
-ffill = minc*np.ones([Ny-1,Nx-1]) # empty rectangular image
-ffill[rows,cols] = f[rows,cols] # filling part of the image ffill with the values of f over deformed domain
+minc = np.min(f)                    # background color
+ffill = minc*np.ones([Ny-1,Nx-1])   # empty rectangular image
+ffill[rows,cols] = f[rows,cols]     # filling part of the image ffill with the values of f over deformed domain
 
 #---------------------- Plotting the source functions ----------------------
 # #plt.ion()
