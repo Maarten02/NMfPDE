@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import scipy.sparse as sp
 import scipy.sparse.linalg as la
 import math
-
+import time
 Lx = 10  # length in x direction
 Ly = 5  # length in y direction
 Nx = 200  # number of intervals in x-direction
@@ -86,7 +86,7 @@ def solveFE(uStart, tStart, tEnd, Nt, x, y):
     for k in range(Nt):
         ukp1 = uk + dt*(-1*A.dot(uk) + f)
         uk = ukp1
-        uloc.append(uk[(Nx-1)*(Ny-1)*0.5])
+        uloc.append(uk[int((Nx-1)*(Ny-1)*0.5)])
     uEnd = uk
     return uEnd, np.array(uloc)
 
@@ -101,14 +101,14 @@ def sovleBE(uStart,tstart,tEnd,Nt):
         vec = uk + dt*f
         ukp1 = la.spsolve(mat,vec)
         uk = ukp1
-        uloc.append(uk[(Nx-1)*(Ny-1)*0.5])
+        uloc.append(uk[int((Nx-1)*(Ny-1)*0.5)])
     uEnd = uk
     return uEnd,np.array(uloc)
 
 
 x,y = np.mgrid[dx:Lx:dx, dy:Ly:dy]
 
-#------------------------------------------------
+#---------- Plotting Source and Coeff. function -----------------
 # fvec = createF(x,y,sourceF)
 # kvec = createF(x,y,coeffK)
 #
@@ -128,6 +128,17 @@ x,y = np.mgrid[dx:Lx:dx, dy:Ly:dy]
 
 u_tilde = la.spsolve(create2DLFVM(x,y,coeffK),createF(x,y,sourceF))
 u_tilde_reshaped = np.reshape(u_tilde,(Ny-1,Nx-1))
-plt.imshow(u_tilde_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
-plt.colorbar(orientation='horizontal')
-plt.show()
+
+#--------------------- Plotting the steady solution  -------------------------
+# plt.imshow(u_tilde_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
+# plt.colorbar(orientation='horizontal')
+# plt.show()
+#-------------------------------------------------------
+
+ic = np.zeros((Nx-1)*(Ny-1))
+
+t_start = time.time()
+ufe = solveFE(ic,0,100,160000,x,y)
+t_end = time.time()
+
+print("solved in ", "{:.2f}".format(t_end - t_start), " s")
