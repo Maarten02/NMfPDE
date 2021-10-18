@@ -90,7 +90,7 @@ def solveFE(uStart, tStart, tEnd, Nt, x, y):
     uEnd = uk
     return uEnd, np.array(uloc)
 
-def sovleBE(uStart,tstart,tEnd,Nt):
+def solveBE(uStart,tStart,tEnd,Nt, x, y):
     uloc = []
     dt = (tEnd - tStart) / Nt
     uk = uStart
@@ -138,7 +138,23 @@ u_tilde_reshaped = np.reshape(u_tilde,(Ny-1,Nx-1))
 ic = np.zeros((Nx-1)*(Ny-1))
 
 t_start = time.time()
-ufe = solveFE(ic,0,100,160000,x,y)
+epsilon = 1.126771315288 * 10 ** -14
+ufe, uloc_array = solveFE(ic,0,100,160000,x,y)
+print("commencing backward euler forms")
+for i in range(1,11):
+    ube, uloc_array = solveBE(ic, 0, 100, 100*i,x,y)
+    epsilon_ube = np.linalg.norm(ube - u_tilde)/(math.sqrt(len(ic) - 1))
+    print("backward eurler using ", 1000*i, "timesteps")
+    print(epsilon_ube)
+
 t_end = time.time()
+#ufe_reshaped = np.reshape(ufe, (Ny-1,Nx-1))
+
+# plt.imshow(ufe_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
+# plt.colorbar(orientation='horizontal')
+# plt.show()
+
+#epsilon = np.linalg.norm(ufe - u_tilde)/(math.sqrt(len(ic) - 1))
 
 print("solved in ", "{:.2f}".format(t_end - t_start), " s")
+#print("epsilon = ", str(epsilon))
