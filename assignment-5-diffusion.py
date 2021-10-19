@@ -13,7 +13,7 @@ dy = Ly/Ny  # grid step in y-direction
 
 def coeffK(x,y):
     if (x - 7)**2 + (y-2.5)**2 <= 1.25**2:
-        return 0.1
+        return 0.2
     else:
         return 1.0
 
@@ -77,20 +77,21 @@ def create2DLFVM(x,y,coeffFun):
     return A
 
 def solveFE(uStart, tStart, tEnd, Nt, x, y):
-    uloc = []
+    uloc = [0.0]
     dt = (tEnd - tStart) / Nt
     uk = uStart
     A = create2DLFVM(x,y,coeffK)
     f = createF(x,y, sourceF)
+    Adt = sp.eye((Nx-1)*(Ny-1)) - A*dt
+    fdt = f*dt
     for k in range(Nt):
-        ukp1 = uk + dt*(-1*A.dot(uk) + f)
-        uk = ukp1
+        uk = Adt.dot(uk) + fdt
         uloc.append(uk[int((Nx-1)*(Ny-1)*0.5)])
     uEnd = uk
     return uEnd, np.array(uloc)
 
 def solveBE(uStart,tStart,tEnd,Nt, x, y):
-    uloc = []
+    uloc = [0.0]
     dt = (tEnd - tStart) / Nt
     uk = uStart
     A = create2DLFVM(x,y,coeffK)
@@ -104,44 +105,8 @@ def solveBE(uStart,tStart,tEnd,Nt, x, y):
     uEnd = uk
     return uEnd,np.array(uloc)
 
+def getBEsteps(ic, epsilon, left=38, right=42):
 
-x,y = np.mgrid[dx:Lx:dx, dy:Ly:dy]
-
-#---------- Plotting Source and Coeff. function -----------------
-# fvec = createF(x,y,sourceF)
-# kvec = createF(x,y,coeffK)
-#
-#
-# size = (Ny-1, Nx-1)
-# fvec_reshaped = np.reshape(fvec, size)
-# kvec_reshaped = np.reshape(kvec,size)
-# plt.figure(1)
-# plt.subplot(2,1,1)
-# plt.imshow(fvec_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
-# plt.colorbar(orientation='vertical')
-# plt.subplot(2,1,2)
-# plt.imshow(kvec_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
-# plt.colorbar(orientation='vertical')
-# plt.show()
-#---------------------------------------------------
-
-u_tilde = la.spsolve(create2DLFVM(x,y,coeffK),createF(x,y,sourceF))
-u_tilde_reshaped = np.reshape(u_tilde,(Ny-1,Nx-1))
-
-#--------------------- Plotting the steady solution  -------------------------
-# plt.imshow(u_tilde_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
-# plt.colorbar(orientation='horizontal')
-# plt.show()
-#-------------------------------------------------------
-
-ic = np.zeros((Nx-1)*(Ny-1))
-t_start = time.time()
-
-#ufe, uloc_array = solveFE(ic,0,100,160000,x,y)
-
-def getBEsteps(ic, left=600, right=700):
-
-    epsilon = 1.126771315288 * 10 ** -14
     size = (Nx-1)*(Ny-1)
     BEtime_steps = 0
     Running = True
@@ -172,17 +137,80 @@ def getBEsteps(ic, left=600, right=700):
         it += 1
     return BEtime_steps
 
-BEtime_steps = getBEsteps(ic)
-print("At least ", BEtime_steps, " timesteps for backward Euler")
+x,y = np.mgrid[dx:Lx:dx, dy:Ly:dy]
+u_tilde = la.spsolve(create2DLFVM(x,y,coeffK),createF(x,y,sourceF))
+u_tilde_reshaped = np.reshape(u_tilde,(Ny-1,Nx-1))
 
+# plt.imshow(u_tilde_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
+# plt.colorbar(orientation='horizontal')
+# plt.show()
 
+ic = np.zeros((Nx-1)*(Ny-1))
+t1 = time.time()
+ufe, uloc_array = solveFE(ic,0,100,160000,x,y)
+t2 = time.time()
+ube, uloc_array2 = solveBE(ic, 0, 100, 41, x, y)
+t3 = time.time()
+
+print("Forward Euler solved in ", "{:.2f}".format(t2 - t1), " s")
+print("Backward Euler solved in ", "{:.2f}".format(t3 - t2), " s")
+epsilonfe = np.linalg.norm(ufe - u_tilde)/(math.sqrt(len(ic)))
+epsilonbe = np.linalg.norm(ube - u_tilde)/math.sqrt(len(ic))
+print(" Forward euler epsilon: " ,epsilonfe," Backward euler epsilon: ",  epsilonbe)
+# steps = getBEsteps(ic, epsilonfe)
+# print("steps required for BE: ", steps)
+print(uloc_array2)
+plt.semilogx(uloc_array, label='Forward Euler')
+plt.semilogx(uloc_array2, label='Backward Euler')
+plt.legend()
+plt.xlabel("Time iteration steps")
+plt.ylabel("Solution value")
+plt.show()
+
+# Currently not used
+#---------- Plotting Source and Coeff. function -----------------
+# fvec = createF(x,y,sourceF)
+# kvec = createF(x,y,coeffK)
+#
+#
+# size = (Ny-1, Nx-1)
+# fvec_reshaped = np.reshape(fvec, size)
+# kvec_reshaped = np.reshape(kvec,size)
+# plt.figure(1)
+# plt.subplot(2,1,1)
+# plt.imshow(fvec_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
+# plt.colorbar(orientation='vertical')
+# plt.subplot(2,1,2)
+# plt.imshow(kvec_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
+# plt.colorbar(orientation='vertical')
+# plt.show()
+#---------------------------------------------------
+#--------------------- Plotting the steady solution  -------------------------
+# plt.imshow(u_tilde_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
+# plt.colorbar(orientation='horizontal')
+# plt.show()
+#-------------------------------------------------------
 #ufe_reshaped = np.reshape(ufe, (Ny-1,Nx-1))
 
 # plt.imshow(ufe_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
 # plt.colorbar(orientation='horizontal')
-# plt.show()
+# # plt.show()
+# epsilon = np.linalg.norm(ufe - u_tilde)/(math.sqrt(len(ic) - 1))
+# print("epsilon = ", str(epsilon))
 
-#epsilon = np.linalg.norm(ufe - u_tilde)/(math.sqrt(len(ic) - 1))
-t_end = time.time()
-print("solved in ", "{:.2f}".format(t_end - t_start), " s")
-#print("epsilon = ", str(epsilon))
+# BEtime_steps = getBEsteps(ic)
+# print("At least ", BEtime_steps, " timesteps for backward Euler")
+#
+# print("epsilon = ", str(epsilon))
+# # print("Forward Euler solved in  ", "{:.2f}".format(t_end1 - t_start), " s")
+# # t_start2 = time.time()
+# # ube, uloc_array2 = solveBE(ic, 0, 100, 46, x, y)
+# # t_end2 = time.time()
+# # epsilon = np.linalg.norm(ube - u_tilde)/(math.sqrt(len(ic)))
+# # print("epsilon = ", str(epsilon))
+# # print("Backward Euler solved in ", "{:.2f}".format(t_end2 - t_start2), " s")
+#
+# # ufe_reshaped = np.reshape(ufe, (Ny-1, Nx-1))
+# # plt.imshow(ufe_reshaped, origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
+# # plt.colorbar(orientation='horizontal')
+# # plt.show()
