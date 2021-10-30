@@ -115,12 +115,12 @@ def NewtonRaphson(wk, k, limit, limited):
         fu = (-Du * A.dot(u) + k * (a - u + u * u * v))
         fv = (-Dv * A.dot(v) + k * (b - u * u * v))
 
-        vec = wk + dt * dt * np.concatenate((fu,fv)) - wkp1
+        vec = wk + dt * np.concatenate((fu,fv)) - wkp1
         pkp1 = la.spsolve(mat, vec)
         wkp1 += pkp1
-        diff = np.linalg.norm(vec)
+        diff = np.linalg.norm(pkp1)
 
-        print('iteration ', itr, ' with error norm ', diff)
+        print('Newton Raphson iteration ', itr, ' error norm: ', diff)
     print('converged after ', itr, 'iterations')
     return limit, wkp1
 
@@ -146,7 +146,7 @@ def deBuggr():
     x, y, u0, v0 = getGridAndInitialConditions(getPerturbator)
     limited = False
     k = 2
-    limit, soln = simulateReactionBE(u0, v0, 40, k, limited)
+    limit, soln = simulateReactionBE(u0, v0, 20, k, limited)
     size = (Ny+1, Nx+1)
     plt.subplot(2, 2, 1)
     plt.imshow(np.reshape(soln[0], size), origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
