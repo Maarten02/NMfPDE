@@ -12,8 +12,8 @@ Ny = 100        # number of intervals in y-direction
 dx = Lx/Nx      # grid step in x-direction
 dy = Ly/Ny      # grid step in y-direction
 Tend = 20       # End time of simulation
-Nt = 50040      # Time steps
-dt = Tend/Nt    # delta t
+NtFE = 50040      # Time steps
+dtFE = Tend/NtFE    # delta t
 
 Du = 0.05       # Parameter in the du/dt equation
 Dv = 1.0        # Parameter in the dv/dt equation
@@ -23,6 +23,7 @@ b = 0.7695      # parameter in du/dt equation
 
 def getPerturbator(Nx, Ny, a=0.1305, b=0.7695):
     # Return grid with noise values
+    np.random.seed(6942)
     return 0.01*(a+b)*np.random.rand(Ny+1,Nx+1)
 
 # Don't know if this function is needed
@@ -89,17 +90,17 @@ def simulateReactionFE(u0, v0):
     return soln
 
 
-def NewtonRaphson(wk, k, limit, limited):
+def NewtonRaphson(wk, k, limit, limited, dt):
     A = getSystemMatrix()
-    wkp1 = wk
+    wkp1 = np.copy(wk)
     itr = 0
     diff = 1
     while diff > 10**-3:
 
         itr += 1
         if limited:
-            if itr == 3:
-                print('Iteration limit reached with error norm ', diff)
+            if itr == 4:
+                #print('Iteration limit reached with error norm ', diff)
                 limit = True
                 break
         u, v = np.split(wkp1, 2)
@@ -118,10 +119,10 @@ def NewtonRaphson(wk, k, limit, limited):
         vec = wk + dt * np.concatenate((fu,fv)) - wkp1
         pkp1 = la.spsolve(mat, vec)
         wkp1 += pkp1
-        diff = np.linalg.norm(pkp1)
+        diff = np.linalg.norm(vec)
 
-        print('Newton Raphson iteration ', itr, ' error norm: ', diff)
-    print('converged after ', itr, 'iterations')
+        #print('Newton Raphson iteration ', itr, ' error norm: ', diff)
+    #print('converged after ', itr, 'iterations')
     return limit, wkp1
 
 def simulateReactionBE(u0, v0, N, k, limited):
@@ -130,13 +131,13 @@ def simulateReactionBE(u0, v0, N, k, limited):
     soln[1] = v0
     wkp1 = np.concatenate((u0,v0))
     limit = False
-
+    dt = Tend / N
     for i in range(N):
-        limit, wkp1 = NewtonRaphson(wkp1, k, limit, limited)
-        print('Timestep ', i+1,'of', N, ' completed.')
-        print('-----------------')
+        limit, wkp1 = NewtonRaphson(wkp1, k, limit, limited, dt)
+        #print('Timestep ', i+1,'of', N, ' completed.')
+        #print('-----------------')
         if limit:
-            print('shits broken')
+            #print('Not converged for N = ', N)
             break
     soln[2], soln[3] = np.split(wkp1, 2)
     return limit, soln
@@ -146,7 +147,8 @@ def deBuggr():
     x, y, u0, v0 = getGridAndInitialConditions(getPerturbator)
     limited = False
     k = 2
-    limit, soln = simulateReactionBE(u0, v0, 20, k, limited)
+    limit, soln = simulateReactionBE(u0, v0, 40, k, limited)
+    print('usum = ', np.sum(soln[2]), ' vsum = ', np.sum(soln[3]))
     size = (Ny+1, Nx+1)
     plt.subplot(2, 2, 1)
     plt.imshow(np.reshape(soln[0], size), origin="lower", extent=((x[0, 0], x[-1, -1], y[0, 0], y[-1, -1])))
@@ -166,39 +168,53 @@ def deBuggr():
     plt.colorbar(orientation='horizontal')
     plt.show()
 
-deBuggr()
+#deBuggr()
 
-def getBENRsteps(k, left=1, right=100):
+def getBENRsteps(k, left=20, right=250):
 
     x, y, u0, v0 = getGridAndInitialConditions(getPerturbator)
     BEtime_steps = 0
+    proceed = False
     Running = True
     it = 1
 
-    while Running:
+    limitLeft, soln = simulateReactionBE(u0, v0, left, k, True)
 
-        print("Bisection iteration ", it," started")
-        print("left = ", left, "right = ", right)
-        middle = int((left + right)*0.5)
+    limitRight, soln = simulateReactionBE(u0, v0, right, k, True)
+    if not limitRight and limitLeft:
+        print('Nt within specified interval')
+        proceed = True
+    else:
+        print('No Nt within specified interval ')
+        print(limitLeft, limitRight)
+    if proceed:
+        while Running:
 
-        limit, soln = simulateReactionBE(u0, v0, middle, k)
+            print("Bisection iteration ", it," started")
+            print("left = ", left, "right = ", right)
+            middle = int((left + right)*0.5)
+            t1 = time.time()
+            limit, soln = simulateReactionBE(u0, v0, middle, k, True)
+            t2 = time.time()
 
-        if right - left == 1 or right == left:
-            Running = False
-            limit, soln = simulateReactionBE(u0, v0, right, k)
-            if not limit:
-                BEtime_steps = right
+            print("BENR with Nt = ", middle, " solved in ", "{:.2f}".format(t2 - t1), " s")
+            if right - left == 1 or right == left:
+                Running = False
+                limit, soln = simulateReactionBE(u0, v0, right, k, True)
+                if not limit:
+                    BEtime_steps = right
+                else:
+                    BEtime_steps = right + 1
+            elif not limit:
+                right = middle
             else:
-                BEtime_steps = right + 1
-        elif not limit:
-            right = middle
-        else:
-            left = middle
-        print("Bisection iteration", it, "completed")
-        it += 1
-    return BEtime_steps
-
-
-
+                left = middle
+            print("-----------")
+            it += 1
+        return BEtime_steps
+    else:
+        return(-1)
+k = 10
+print('for k = ', k, ' Nt = ', getBENRsteps(k))
 #=====          ANIMATION CODE            ======
 
