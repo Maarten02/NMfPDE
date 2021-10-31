@@ -1,0 +1,122 @@
+Nt within specified interval
+Bisection iteration  1  started
+left =  20 right =  250
+BENR with Nt =  135  solved in  61.00  s
+-----------
+Bisection iteration  2  started
+left =  20 right =  135
+BENR with Nt =  77  solved in  36.58  s
+-----------
+Bisection iteration  3  started
+left =  20 right =  77
+BENR with Nt =  48  solved in  23.89  s
+-----------
+Bisection iteration  4  started
+left =  20 right =  48
+BENR with Nt =  34  solved in  13.12  s
+-----------
+Bisection iteration  5  started
+left =  34 right =  48
+BENR with Nt =  41  solved in  16.57  s
+-----------
+Bisection iteration  6  started
+left =  41 right =  48
+BENR with Nt =  44  solved in  18.49  s
+-----------
+Bisection iteration  7  started
+left =  44 right =  48
+BENR with Nt =  46  solved in  22.89  s
+-----------
+Bisection iteration  8  started
+left =  44 right =  46
+BENR with Nt =  45  solved in  22.41  s
+-----------
+Bisection iteration  9  started
+left =  44 right =  45
+BENR with Nt =  44  solved in  18.57  s
+-----------
+>>BENR with Nt =  45  solved in  18.57  s
+for k =  2  Nt =  45
+Nt within specified interval
+Bisection iteration  1  started
+left =  20 right =  250
+BENR with Nt =  135  solved in  72.88  s
+-----------
+Bisection iteration  2  started
+left =  20 right =  135
+BENR with Nt =  77  solved in  11.46  s
+-----------
+Bisection iteration  3  started
+left =  77 right =  135
+BENR with Nt =  106  solved in  15.46  s
+-----------
+Bisection iteration  4  started
+left =  106 right =  135
+BENR with Nt =  120  solved in  18.64  s
+-----------
+Bisection iteration  5  started
+left =  120 right =  135
+BENR with Nt =  127  solved in  73.29  s
+-----------
+Bisection iteration  6  started
+left =  120 right =  127
+BENR with Nt =  123  solved in  25.42  s
+-----------
+Bisection iteration  7  started
+left =  123 right =  127
+BENR with Nt =  125  solved in  65.75  s
+-----------
+Bisection iteration  8  started
+left =  123 right =  125
+BENR with Nt =  124  solved in  19.00  s
+-----------
+Bisection iteration  9  started
+left =  124 right =  125
+BENR with Nt =  124  solved in  19.03  s
+-----------
+>>BENR with Nt =  125  solved in  19.03  s
+for k =  5  Nt =  125
+Nt within specified interval
+Bisection iteration  1  started
+left =  20 right =  250
+BENR with Nt =  135  solved in  8.21  s
+-----------
+Bisection iteration  2  started
+left =  135 right =  250
+BENR with Nt =  192  solved in  12.79  s
+-----------
+Bisection iteration  3  started
+left =  192 right =  250
+BENR with Nt =  221  solved in  16.05  s
+-----------
+Bisection iteration  4  started
+left =  221 right =  250
+BENR with Nt =  235  solved in  17.35  s
+-----------
+Bisection iteration  5  started
+left =  235 right =  250
+BENR with Nt =  242  solved in  125.78  s
+-----------
+Bisection iteration  6  started
+left =  235 right =  242
+BENR with Nt =  238  solved in  19.64  s
+-----------
+Bisection iteration  7  started
+left =  238 right =  242
+BENR with Nt =  240  solved in  19.17  s
+-----------
+Bisection iteration  8  started
+left =  240 right =  242
+BENR with Nt =  241  solved in  18.54  s
+-----------
+Bisection iteration  9  started
+left =  241 right =  242
+BENR with Nt =  241  solved in  19.44  s
+-----------
+>>BENR with Nt =  242  solved in  19.44  s
+for k =  10  Nt =  242
+
+-------------
+for k =   2  Nt =   45  execution time =  24.25  s
+for k =   5  Nt =  125  execution time =  67.71  s
+for k =  10  Nt =  242  execution time = 124.55  s
